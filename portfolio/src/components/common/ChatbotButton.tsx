@@ -101,14 +101,18 @@ export function ChatbotButton() {
 
   // Check connection status on mount and periodically
   useEffect(() => {
+    let isFirst = true;
     const checkStatus = async () => {
-      setStatus('connecting');
+      if (isFirst) {
+        setStatus('connecting');
+        isFirst = false;
+      }
       const connectionStatus = await checkConnection();
       setStatus(connectionStatus);
     };
 
     checkStatus();
-    const interval = setInterval(checkStatus, 30000); // Check every 30 seconds
+    const interval = setInterval(checkStatus, 60000); // Check every 60 seconds
 
     return () => clearInterval(interval);
   }, []);
