@@ -1,8 +1,57 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, Download, Mail, Code, Brain, Cloud, Bot, Database, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { profile } from '@/data/profile';
+
+const rotatingRoles = [
+  'AI/ML Engineer',
+  'Python Developer',
+  'Agentic AI Specialist',
+  'Cloud Architect',
+  'Full-Stack Developer',
+  'RAG Pipeline Expert',
+];
+
+function TypewriterRole() {
+  const [roleIndex, setRoleIndex] = useState(0);
+  const [text, setText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  useEffect(() => {
+    const currentRole = rotatingRoles[roleIndex];
+    const speed = isDeleting ? 40 : 80;
+
+    if (!isDeleting && text === currentRole) {
+      const pause = setTimeout(() => setIsDeleting(true), 2000);
+      return () => clearTimeout(pause);
+    }
+
+    if (isDeleting && text === '') {
+      setIsDeleting(false);
+      setRoleIndex((prev) => (prev + 1) % rotatingRoles.length);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setText(
+        isDeleting
+          ? currentRole.substring(0, text.length - 1)
+          : currentRole.substring(0, text.length + 1)
+      );
+    }, speed);
+
+    return () => clearTimeout(timer);
+  }, [text, isDeleting, roleIndex]);
+
+  return (
+    <span className="gradient-text">
+      {text}
+      <span className="animate-pulse text-primary">|</span>
+    </span>
+  );
+}
 
 export function Home() {
   return (
@@ -14,10 +63,14 @@ export function Home() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-2">
               Hi, I'm{' '}
               <span className="gradient-text">{profile.shortName}</span>
             </h1>
+            
+            <div className="text-xl md:text-2xl lg:text-3xl font-semibold mb-6 h-10">
+              <TypewriterRole />
+            </div>
             
             <p className="text-muted-foreground mb-6 max-w-xl leading-relaxed">
               {profile.summary}

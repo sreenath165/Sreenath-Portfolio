@@ -7,3 +7,4 @@ export { Certifications } from './Certifications';
 export { Education } from './Education';
 export { Resume } from './Resume';
 export { Contact } from './Contact';
+export { NotFound } from './NotFound';

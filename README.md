@@ -525,13 +525,6 @@ API Docs at: `http://localhost:10000/docs`
 | `npm run preview` | Preview production build locally |
 | `npm run lint` | Run ESLint |
 
-### Backend (`backend/`)
-
-| Command | Description |
-|---|---|
-| `uvicorn app.main:app --reload --port 10000` | Start dev server with hot reload |
-| `uvicorn app.main:app --host 0.0.0.0 --port 10000` | Start production server |
-
 ---
 
 ## 📊 Project Highlights
@@ -539,9 +532,54 @@ API Docs at: `http://localhost:10000/docs`
 - **14 projects** showcased — from Agentic AI platforms to Unity games
 - **6 certifications** — AWS Cloud Practitioner, Azure Administrator (AZ-104), Azure AI Fundamentals (AI-900), and more
 - **2 professional roles** — Sutherland Global Services, Versalence Infocomm
-- **50+ portfolio documents** indexed in the vector store for AI chatbot context
+- **AI Chatbot** powered by Groq LLaMA 3.3 70B via Vercel Serverless Functions
 - **Custom HSL color system** — seamless dark/light theme transitions
 - **Zero external UI kit** — all components built with Radix primitives + Tailwind
+
+---
+
+## 🆕 Recently Added Features
+
+### 1. 🎯 Typewriter Rotating Roles (Home Page)
+The hero section now features a **typewriter animation** that cycles through role titles:
+- AI/ML Engineer → Python Developer → Agentic AI Specialist → Cloud Architect → Full-Stack Developer → RAG Pipeline Expert
+- Smooth type-and-delete animation with a blinking cursor
+
+### 2. 📊 Scroll Progress Bar
+A **gradient progress bar** appears below the navbar as you scroll, showing how far down the page you've read. Uses Framer Motion's `useScroll` for butter-smooth performance.
+
+### 3. 🚫 Custom 404 Page
+Invalid URLs now show a **styled 404 page** with:
+- Large gradient "404" text
+- Friendly error message
+- "Back to Home" and "Go Back" buttons
+
+### 4. 🏷️ Technology Filter Chips (Projects Page)
+The Projects page now has **clickable technology filter chips**:
+- All unique technologies extracted from projects, sorted by frequency
+- Click any chip to filter projects by that technology
+- Multi-select support — click multiple chips to narrow results
+- Clicking tech badges inside project cards also toggles filters
+- "Clear All" button to reset filters
+
+---
+
+## 🔮 Future Enhancements
+
+Features that can be added to further improve the portfolio:
+
+| Feature | Description | Complexity |
+|---|---|---|
+| **Blog / Articles Page** | Write and publish technical blog posts (MDX-based) with syntax highlighting, tags, and reading time | Medium |
+| **Testimonials Section** | Carousel of client/colleague testimonials with profile photos and LinkedIn links | Low |
+| **GitHub Activity Feed** | Real-time GitHub contribution graph and recent commit activity via GitHub API | Medium |
+| **Project Demo Deployments** | Live demo links for select projects (deployed on Vercel/Netlify) instead of just GitHub links | Medium |
+| **Multi-language Support** | i18n support for Telugu, Hindi, and English using `react-i18next` | Medium |
+| **Analytics Dashboard** | Visitor count, page views, and geographic data using Vercel Analytics or Plausible | Low |
+| **PWA Support** | Service worker + manifest for installable Progressive Web App with offline access | Low |
+| **Contact Form Backend** | Wire up the contact form to actually send emails via Resend/SendGrid serverless API | Low |
+| **Animated Page Transitions** | Framer Motion `AnimatePresence` page-level transitions between routes | Low |
+| **Project Case Studies** | Detailed case study pages for featured projects with problem/solution/results format | High |
 
 ---
 

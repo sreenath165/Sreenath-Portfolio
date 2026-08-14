@@ -27,11 +27,39 @@ interface Project {
   mediaUrl?: string;
 }
 
+// Extract unique technologies from all projects, sorted by frequency
+function getUniqueTechnologies(): string[] {
+  const techCount = new Map<string, number>();
+  projects.forEach(p => {
+    p.technologies.forEach(tech => {
+      techCount.set(tech, (techCount.get(tech) || 0) + 1);
+    });
+  });
+  return Array.from(techCount.entries())
+    .sort((a, b) => b[1] - a[1])
+    .map(([tech]) => tech);
+}
+
+const allTechnologies = getUniqueTechnologies();
+
 export function Projects() {
   const [filter, setFilter] = useState<'all' | 'featured'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTechs, setSelectedTechs] = useState<string[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+
+  const toggleTech = (tech: string) => {
+    setSelectedTechs(prev =>
+      prev.includes(tech) ? prev.filter(t => t !== tech) : [...prev, tech]
+    );
+  };
+
+  const clearFilters = () => {
+    setSelectedTechs([]);
+    setSearchQuery('');
+    setFilter('all');
+  };
 
   const handleViewDetails = (project: Project) => {
     if (project.mediaType === 'link' && project.mediaUrl) {
@@ -58,9 +86,17 @@ export function Projects() {
         project.features.some(feature => feature.toLowerCase().includes(query))
       );
     }
+
+    if (selectedTechs.length > 0) {
+      result = result.filter(project =>
+        selectedTechs.every(tech =>
+          project.technologies.some(t => t.toLowerCase() === tech.toLowerCase())
+        )
+      );
+    }
     
     return result;
-  }, [filter, searchQuery]);
+  }, [filter, searchQuery, selectedTechs]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -74,6 +110,8 @@ export function Projects() {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   };
+
+  const hasActiveFilters = selectedTechs.length > 0 || searchQuery.trim() !== '' || filter !== 'all';
 
   return (
     <SectionWrapper>
@@ -103,12 +141,13 @@ export function Projects() {
         </div>
       </div>
 
-      <div className="flex justify-center gap-4 mb-8">
+      {/* Filter chips */}
+      <div className="flex justify-center gap-4 mb-4">
         <Button
           variant={filter === 'all' ? 'default' : 'outline'}
           onClick={() => setFilter('all')}
         >
-          All Projects ({filter === 'all' && searchQuery ? filteredProjects.length : projects.length})
+          All Projects ({filter === 'all' && (searchQuery || selectedTechs.length > 0) ? filteredProjects.length : projects.length})
         </Button>
         <Button
           variant={filter === 'featured' ? 'default' : 'outline'}
@@ -118,6 +157,31 @@ export function Projects() {
         </Button>
       </div>
 
+      {/* Technology filter chips */}
+      <div className="flex flex-wrap justify-center gap-2 mb-8 max-w-3xl mx-auto">
+        {allTechnologies.map(tech => (
+          <button
+            key={tech}
+            onClick={() => toggleTech(tech)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 border ${
+              selectedTechs.includes(tech)
+                ? 'bg-primary text-primary-foreground border-primary shadow-md scale-105'
+                : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground'
+            }`}
+          >
+            {tech}
+          </button>
+        ))}
+        {hasActiveFilters && (
+          <button
+            onClick={clearFilters}
+            className="px-3 py-1 rounded-full text-xs font-medium bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors"
+          >
+            Clear All ✕
+          </button>
+        )}
+      </div>
+
       {filteredProjects.length === 0 && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -125,8 +189,14 @@ export function Projects() {
           className="text-center py-12"
         >
           <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-lg text-muted-foreground">No projects found for "{searchQuery}"</p>
-          <p className="text-sm text-muted-foreground mt-2">Try searching with different keywords</p>
+          <p className="text-lg text-muted-foreground">
+            No projects found{searchQuery ? ` for "${searchQuery}"` : ''}
+            {selectedTechs.length > 0 ? ` with ${selectedTechs.join(', ')}` : ''}
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">Try different filters or keywords</p>
+          <Button variant="outline" size="sm" className="mt-4" onClick={clearFilters}>
+            Clear Filters
+          </Button>
         </motion.div>
       )}
 
@@ -194,7 +264,12 @@ export function Projects() {
 
                   <div className="flex flex-wrap gap-1.5">
                     {project.technologies.slice(0, 5).map((tech, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
+                      <Badge
+                        key={idx}
+                        variant={selectedTechs.includes(tech) ? 'default' : 'secondary'}
+                        className="text-xs cursor-pointer"
+                        onClick={() => toggleTech(tech)}
+                      >
                         {tech}
                       </Badge>
                     ))}

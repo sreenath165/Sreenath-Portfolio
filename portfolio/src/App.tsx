@@ -10,6 +10,7 @@ import {
   Education,
   Resume,
   Contact,
+  NotFound,
 } from '@/pages';
 import { ScrollToTopOnNavigate } from '@/components/common/ScrollToTopOnNavigate';
 import '@/styles/globals.css';
@@ -29,6 +30,7 @@ function App() {
           <Route path="education" element={<Education />} />
           <Route path="resume" element={<Resume />} />
           <Route path="contact" element={<Contact />} />
+          <Route path="*" element={<NotFound />} />
         </Route>
       </Routes>
     </Router>
