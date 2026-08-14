@@ -2,7 +2,7 @@
  * Chat API Service
  * Handles communication with the Portfolio AI Assistant
  * Uses Vercel serverless API routes (same domain — no CORS issues)
- * Supports streaming responses for real-time typing effect
+ * Simulates typing effect client-side from JSON response
  */
 
 export interface ChatMessage {
@@ -38,7 +38,7 @@ export interface StreamCallbacks {
 }
 
 /**
- * Send a chat message with streaming response
+ * Send a chat message and simulate streaming via client-side word-by-word rendering
  */
 export async function sendChatMessageStream(
   message: string,
@@ -50,62 +50,35 @@ export async function sendChatMessageStream(
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message, stream: true }),
+      body: JSON.stringify({ message }),
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-      callbacks.onError(error.error || error.detail || `HTTP error! status: ${response.status}`);
+      const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+      callbacks.onError(errorData.error || `HTTP error! status: ${response.status}`);
       return;
     }
 
-    const reader = response.body?.getReader();
-    if (!reader) {
-      callbacks.onError('No response body');
-      return;
+    const data: ChatResponse = await response.json();
+
+    // Simulate typing effect by sending words one at a time
+    const words = data.answer.split(' ');
+    for (let i = 0; i < words.length; i++) {
+      const chunk = words[i] + (i < words.length - 1 ? ' ' : '');
+      callbacks.onContent(chunk);
+      // Small delay between words for typing effect
+      await new Promise(resolve => setTimeout(resolve, 25));
     }
 
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n\n');
-      buffer = lines.pop() || '';
-
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          try {
-            const data = JSON.parse(line.slice(6));
-            
-            if (data.type === 'content') {
-              callbacks.onContent(data.content);
-            } else if (data.type === 'sources') {
-              callbacks.onSources(data.sources || []);
-            } else if (data.type === 'done') {
-              callbacks.onDone();
-            } else if (data.type === 'error') {
-              callbacks.onError(data.content);
-            }
-          } catch (e) {
-            // Skip invalid JSON
-          }
-        }
-      }
-    }
-
-    // If we exited the loop without receiving a 'done' event, call onDone
-    // This handles the case where the stream ends without explicit done signal
+    callbacks.onSources(data.sources || []);
+    callbacks.onDone();
   } catch (error) {
-    callbacks.onError(error instanceof Error ? error.message : 'Connection failed');
+    callbacks.onError(error instanceof Error ? error.message : 'Connection failed. Please try again.');
   }
 }
 
 /**
- * Send a chat message (non-streaming fallback)
+ * Send a chat message (non-streaming)
  */
 export async function sendChatMessage(message: string): Promise<ChatResponse> {
   const response = await fetch('/api/chat', {
@@ -113,12 +86,12 @@ export async function sendChatMessage(message: string): Promise<ChatResponse> {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ message, stream: false }),
+    body: JSON.stringify({ message }),
   });
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ error: 'Unknown error' }));
-    throw new Error(error.error || error.detail || `HTTP error! status: ${response.status}`);
+    throw new Error(error.error || `HTTP error! status: ${response.status}`);
   }
 
   return response.json();
@@ -131,9 +104,6 @@ export async function checkHealth(): Promise<HealthResponse> {
   try {
     const response = await fetch('/api/health', {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
     });
 
     if (!response.ok) {

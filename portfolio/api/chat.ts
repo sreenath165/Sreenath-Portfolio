@@ -271,21 +271,23 @@ ${PORTFOLIO_CONTEXT}
 - Encourage visitors to explore the portfolio website, GitHub, or reach out via contact page.
 - Keep responses under 300 words unless the question requires detailed analysis.`;
 
-// ─── Helper: Check if question is relevant ───────────────────────────
-function isGreeting(message: string): boolean {
-  const greetings = ['hi', 'hello', 'hey', 'howdy', 'greetings', 'good morning', 'good afternoon', 'good evening', 'whats up', "what's up", 'sup', 'yo', 'hola', 'namaste'];
-  const lower = message.toLowerCase().trim();
-  return greetings.some(g => lower === g || lower.startsWith(g + ' ') || lower.startsWith(g + ',') || lower.startsWith(g + '!'));
-}
 
 // ─── Main Handler ────────────────────────────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Only allow POST
+  // Allow CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { message, stream = true } = req.body || {};
+  const { message } = req.body || {};
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return res.status(400).json({ error: 'Message is required' });
@@ -297,11 +299,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'Server configuration error: API key not set' });
+    console.error('GROQ_API_KEY is not set in environment variables');
+    return res.status(500).json({ error: 'Server configuration error: API key not set. Please add GROQ_API_KEY to Vercel environment variables.' });
   }
 
   try {
-    // Call Groq API
     const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -321,54 +323,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     if (!groqResponse.ok) {
-      const errorData = await groqResponse.text();
-      console.error('Groq API error:', groqResponse.status, errorData);
+      const errorText = await groqResponse.text();
+      console.error(`Groq API error [${groqResponse.status}]:`, errorText);
       return res.status(502).json({ error: 'AI service temporarily unavailable. Please try again.' });
     }
 
-    const data = await groqResponse.json();
+    const data = await groqResponse.json() as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
     const answer = data.choices?.[0]?.message?.content || 'I apologize, but I could not generate a response. Please try again.';
 
-    // Clean the response
-    const cleanedAnswer = cleanResponse(answer);
-
-    if (stream) {
-      // Stream response as SSE
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-      res.setHeader('X-Accel-Buffering', 'no');
-
-      const words = cleanedAnswer.split(' ');
-      for (let i = 0; i < words.length; i++) {
-        const chunk = words[i] + (i < words.length - 1 ? ' ' : '');
-        res.write(`data: ${JSON.stringify({ type: 'content', content: chunk })}\n\n`);
-      }
-
-      // Send done signal
-      res.write(`data: ${JSON.stringify({ type: 'sources', sources: [] })}\n\n`);
-      res.write(`data: ${JSON.stringify({ type: 'done' })}\n\n`);
-      res.end();
-    } else {
-      // Non-streaming response
-      return res.status(200).json({
-        answer: cleanedAnswer,
-        sources: [],
-        relevant: true,
-      });
-    }
-  } catch (error) {
-    console.error('Chat handler error:', error);
+    return res.status(200).json({
+      answer: cleanResponse(answer),
+      sources: [],
+      relevant: true,
+    });
+  } catch (error: unknown) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.error('Chat handler error:', errMsg);
     return res.status(500).json({ error: 'An unexpected error occurred. Please try again.' });
   }
 }
 
 // ─── Clean Response ──────────────────────────────────────────────────
 function cleanResponse(text: string): string {
-  // Remove markdown bold/italic
   let cleaned = text.replace(/\*\*/g, '').replace(/__/g, '');
 
-  // Convert markdown bullets to bullet character
   const lines = cleaned.split('\n');
   const cleanedLines = lines.map(line => {
     const trimmed = line.trimStart();
@@ -382,13 +362,9 @@ function cleanResponse(text: string): string {
   });
   cleaned = cleanedLines.join('\n');
 
-  // Remove code block markers
   cleaned = cleaned.replace(/```/g, '');
-
-  // Remove heading markers
   cleaned = cleaned.replace(/^#+\s/gm, '');
 
-  // Clean excessive whitespace
   while (cleaned.includes('  ')) {
     cleaned = cleaned.replace(/  /g, ' ');
   }
