@@ -562,6 +562,20 @@ The Projects page now has **clickable technology filter chips**:
 - Clicking tech badges inside project cards also toggles filters
 - "Clear All" button to reset filters
 
+### 5. 📧 Contact Form Backend
+The contact form now **actually sends emails** via Resend API:
+- Vercel serverless function at `/api/contact` handles submissions
+- Sends a beautifully styled HTML email to `saisreenathreddyy@gmail.com`
+- Reply-to is set to the visitor's email for easy responses
+- Server-side validation + client-side error/success feedback
+- Requires `RESEND_API_KEY` in Vercel Environment Variables
+
+### 6. ✨ Animated Page Transitions
+Smooth **fade + slide animations** between all pages using Framer Motion `AnimatePresence`:
+- Pages fade in with a subtle upward slide on entry
+- Pages fade out with a downward slide on exit
+- `mode="wait"` ensures clean transitions with no layout flashing
+
 ---
 
 ## 🔮 Future Enhancements
@@ -577,8 +591,6 @@ Features that can be added to further improve the portfolio:
 | **Multi-language Support** | i18n support for Telugu, Hindi, and English using `react-i18next` | Medium |
 | **Analytics Dashboard** | Visitor count, page views, and geographic data using Vercel Analytics or Plausible | Low |
 | **PWA Support** | Service worker + manifest for installable Progressive Web App with offline access | Low |
-| **Contact Form Backend** | Wire up the contact form to actually send emails via Resend/SendGrid serverless API | Low |
-| **Animated Page Transitions** | Framer Motion `AnimatePresence` page-level transitions between routes | Low |
 | **Project Case Studies** | Detailed case study pages for featured projects with problem/solution/results format | High |
 
 ---

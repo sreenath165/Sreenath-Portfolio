@@ -1,9 +1,9 @@
-import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { ScrollToTop } from '@/components/common/ScrollToTop';
 import { ChatbotButton } from '@/components/common/ChatbotButton';
 import { ScrollProgress } from '@/components/common/ScrollProgress';
+import { AnimatedOutlet } from '@/components/common/AnimatedOutlet';
 
 export function Layout() {
   return (
@@ -11,7 +11,7 @@ export function Layout() {
       <Navbar />
       <ScrollProgress />
       <main className="flex-1 pt-16">
-        <Outlet />
+        <AnimatedOutlet />
       </main>
       <Footer />
       <ChatbotButton />
