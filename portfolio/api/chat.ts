@@ -304,45 +304,66 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: message.trim() },
-        ],
-        temperature: 0.3,
-        max_tokens: 1024,
-        stream: false,
-      }),
-    });
+    const candidateModels = [
+      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b',
+      'groq/compound-mini',
+    ];
 
-    if (!groqResponse.ok) {
-      const errorText = await groqResponse.text();
-      console.error(`Groq API error [${groqResponse.status}]:`, errorText);
-      return res.status(502).json({ error: 'AI service temporarily unavailable. Please try again.' });
+  let answer = '';
+  let lastError = '';
+
+  for (const model of candidateModels) {
+    try {
+      const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'user', content: message.trim() },
+          ],
+          temperature: 0.3,
+          max_tokens: 1024,
+          stream: false,
+        }),
+      });
+
+      if (groqResponse.ok) {
+        const data = await groqResponse.json() as {
+          choices?: Array<{ message?: { content?: string } }>;
+        };
+        answer = data.choices?.[0]?.message?.content || '';
+        if (answer) break;
+      } else {
+        lastError = await groqResponse.text();
+        console.warn(`Model ${model} failed with status ${groqResponse.status}: ${lastError}`);
+      }
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+      console.warn(`Error calling model ${model}: ${lastError}`);
     }
-
-    const data = await groqResponse.json() as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const answer = data.choices?.[0]?.message?.content || 'I apologize, but I could not generate a response. Please try again.';
-
-    return res.status(200).json({
-      answer: cleanResponse(answer),
-      sources: [],
-      relevant: true,
-    });
-  } catch (error: unknown) {
-    const errMsg = error instanceof Error ? error.message : String(error);
-    console.error('Chat handler error:', errMsg);
-    return res.status(500).json({ error: 'An unexpected error occurred. Please try again.' });
   }
+
+  if (!answer) {
+    console.error('All model candidates failed. Last error:', lastError);
+    return res.status(502).json({ error: 'AI service temporarily unavailable. Please try again.' });
+  }
+
+  return res.status(200).json({
+    answer: cleanResponse(answer),
+    sources: [],
+    relevant: true,
+  });
+} catch (error: unknown) {
+  const errMsg = error instanceof Error ? error.message : String(error);
+  console.error('Chat handler error:', errMsg);
+  return res.status(500).json({ error: 'An unexpected error occurred. Please try again.' });
+}
 }
 
 // ─── Clean Response ──────────────────────────────────────────────────

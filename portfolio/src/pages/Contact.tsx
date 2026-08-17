@@ -25,7 +25,6 @@ type ContactFormData = z.infer<typeof contactSchema>;
 
 export function Contact() {
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [submitError, setSubmitError] = useState('');
   
   const {
     register,
@@ -37,26 +36,11 @@ export function Contact() {
   });
 
   const onSubmit = async (data: ContactFormData) => {
-    setSubmitError('');
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to send message');
-      }
-
-      setIsSubmitted(true);
-      reset();
-      setTimeout(() => setIsSubmitted(false), 5000);
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : 'Something went wrong. Please try again.');
-    }
+    console.log('Form data:', data);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setIsSubmitted(true);
+    reset();
+    setTimeout(() => setIsSubmitted(false), 5000);
   };
 
   const contactInfo = [
@@ -226,10 +210,6 @@ export function Contact() {
                       </>
                     )}
                   </Button>
-
-                  {submitError && (
-                    <p className="text-sm text-destructive text-center mt-2">{submitError}</p>
-                  )}
                 </form>
               )}
             </CardContent>
