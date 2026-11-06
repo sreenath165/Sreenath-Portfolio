@@ -4,13 +4,13 @@
   <img src="https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
   <img src="https://img.shields.io/badge/TailwindCSS-3.4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="TailwindCSS" />
   <img src="https://img.shields.io/badge/Framer_Motion-12-0055FF?style=for-the-badge&logo=framer&logoColor=white" alt="Framer Motion" />
-  <img src="https://img.shields.io/badge/Groq_LLaMA_3.3-70B-F55036?style=for-the-badge&logoColor=white" alt="Groq" />
+  <img src="https://img.shields.io/badge/Groq-gpt--oss--120b-F55036?style=for-the-badge&logoColor=white" alt="Groq" />
   <img src="https://img.shields.io/badge/Deployed-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
 </p>
 
 # 🚀 Sai Sreenath Reddy — Portfolio
 
-A modern, high-performance **full-stack developer portfolio** with an integrated **AI-powered assistant** (Sree AI). The frontend is a React + TypeScript SPA featuring fluid animations, dark/light theming, and a fully responsive design. The AI chatbot is powered by **Groq's LLaMA 3.3 70B Versatile** model running serverlessly on **Vercel Serverless Functions** with zero external backend dependencies.
+A modern, high-performance **full-stack developer portfolio** with an integrated **AI-powered assistant** (Sree AI). The frontend is a React + TypeScript SPA featuring fluid animations, dark/light theming, and a fully responsive design. The AI chatbot is powered by **Groq** (`openai/gpt-oss-120b`, with automatic fallback to `gpt-oss-20b` and `compound-mini`) running serverlessly on **Vercel Serverless Functions** with zero external backend dependencies.
 
 > **Live Site:** Hosted on [Vercel](https://sreenath-portfolio-ten.vercel.app/)
 
@@ -67,8 +67,9 @@ A modern, high-performance **full-stack developer portfolio** with an integrated
 | **Role Fit Analysis** | Intelligently analyzes how Sai's skills and projects map to AI Engineer, Backend Developer, or Cloud roles |
 | **Relevance Guardrails** | Strict guardrails reject off-topic questions (politics, weather, general trivia) politely |
 | **Client-Side Typing Stream** | Delivers responses with simulated real-time typing animation (25ms per word) |
-| **Health Monitoring** | Automatic connectivity checks (`/api/health`) with Online/Connecting/Offline status dots |
-| **Session Isolation** | Stateless backend — client-side chat management with one-click conversation reset |
+| **Health Monitoring** | Automatic connectivity checks (`/api/health`, which reports offline if `GROQ_API_KEY` is missing) with Online/Connecting/Offline status dots |
+| **Conversation Memory** | Stateless backend — the widget sends the last few turns with each message so follow-up questions work; one-click conversation reset |
+| **Rate Limiting** | Best-effort per-IP limit (12 messages/minute) to protect the Groq quota; same-origin only (no CORS) |
 | **Response Sanitization** | Automatically cleans markdown artifacts and formats lists into neat bullet points (`•`) |
 
 ---
@@ -94,7 +95,7 @@ A modern, high-performance **full-stack developer portfolio** with an integrated
                                                  ▼
                                      ┌───────────────────────┐
                                      │    Groq Cloud API     │
-                                     │  LLaMA 3.3 70B Model  │
+                                     │  gpt-oss-120b (+fallbacks) │
                                      └───────────────────────┘
 ```
 
@@ -102,7 +103,7 @@ A modern, high-performance **full-stack developer portfolio** with an integrated
 1. User types a question in the chat widget.
 2. Frontend sends a `POST /api/chat` request with the user message.
 3. Vercel Serverless Function combines system prompt, full portfolio context, and the user's message.
-4. Request is sent to Groq's high-speed inference API (`llama-3.3-70b-versatile`).
+4. Request is sent to Groq's inference API (`openai/gpt-oss-120b`, falling back to `openai/gpt-oss-20b` then `groq/compound-mini`).
 5. Output is sanitized and returned as clean JSON.
 6. Frontend simulates real-time typing word-by-word with cursor feedback.
 
@@ -129,9 +130,9 @@ A modern, high-performance **full-stack developer portfolio** with an integrated
 | Technology | Purpose |
 |---|---|
 | **Vercel Serverless Functions** | Zero-config Node.js API routes (`/api/chat`, `/api/health`) |
-| **Groq SDK** | Ultra-fast inference client for Groq Cloud |
-| **LLaMA 3.3 70B Versatile** | High-capability LLM for conversational portfolio Q&A |
-| **TypeScript (Node.js)** | Typed serverless function handlers with CORS support |
+| **Groq REST API** | Called directly with `fetch` (OpenAI-compatible endpoint) |
+| **gpt-oss-120b on Groq** | LLM for conversational portfolio Q&A, with smaller fallback models |
+| **TypeScript (Node.js)** | Typed serverless function handlers |
 
 ### Hosting & Infrastructure
 

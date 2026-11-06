@@ -25,6 +25,8 @@ const statusConfig = {
   },
 };
 
+const CHAT_ERROR_MESSAGE = "I'm sorry, I encountered an error. Please try again.";
+
 const thinkingMessage = "Hey! I'm Sree AI 🤖 Talk to me to know more about Sai!";
 
 function TypewriterText({ text }: { text: string }) {
@@ -159,6 +161,7 @@ export function ChatbotButton() {
       timestamp: new Date(),
     };
 
+    const history = messages.filter(m => m.content !== CHAT_ERROR_MESSAGE);
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
@@ -192,7 +195,7 @@ export function ChatbotButton() {
         console.error('Chat error:', error);
         const errorMessage: ChatMessage = {
           role: 'assistant',
-          content: "I'm sorry, I encountered an error. Please try again.",
+          content: CHAT_ERROR_MESSAGE,
           timestamp: new Date(),
         };
         setMessages(prev => [...prev, errorMessage]);
@@ -204,8 +207,8 @@ export function ChatbotButton() {
         const connectionStatus = await checkConnection();
         setStatus(connectionStatus);
       }
-    });
-  }, [inputValue, isLoading, status]);
+    }, history);
+  }, [inputValue, isLoading, status, messages]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
