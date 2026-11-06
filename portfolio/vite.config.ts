@@ -9,9 +9,10 @@ function devApiMiddleware(apiKey: string): Plugin {
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         if (req.url === '/api/health') {
+          const configured = Boolean(process.env.GROQ_API_KEY || apiKey)
           res.setHeader('Content-Type', 'application/json')
-          res.statusCode = 200
-          res.end(JSON.stringify({ status: 'healthy' }))
+          res.statusCode = configured ? 200 : 503
+          res.end(JSON.stringify({ status: configured ? 'healthy' : 'unconfigured' }))
           return
         }
 

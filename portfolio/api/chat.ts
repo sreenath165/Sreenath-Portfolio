@@ -272,22 +272,58 @@ ${PORTFOLIO_CONTEXT}
 - Keep responses under 300 words unless the question requires detailed analysis.`;
 
 
+// ─── Rate Limiting ───────────────────────────────────────────────────
+// Best-effort, per serverless instance: caps how fast one visitor can spend Groq quota.
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = 12;
+const requestLog = new Map<string, number[]>();
+
+function getClientIp(req: VercelRequest): string {
+  const fwd = req.headers['x-forwarded-for'];
+  const first = Array.isArray(fwd) ? fwd[0] : fwd;
+  return (first?.split(',')[0].trim()) || (req.headers['x-real-ip'] as string) || 'unknown';
+}
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const recent = (requestLog.get(ip) || []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
+  recent.push(now);
+  requestLog.set(ip, recent);
+  if (requestLog.size > 5000) {
+    for (const [key, times] of requestLog) {
+      if (times.every(t => now - t >= RATE_LIMIT_WINDOW_MS)) requestLog.delete(key);
+    }
+  }
+  return recent.length > RATE_LIMIT_MAX;
+}
+
+// ─── Conversation History ────────────────────────────────────────────
+// The widget sends recent turns so follow-up questions ("tell me more about that") work.
+const MAX_HISTORY_TURNS = 8;
+const MAX_HISTORY_CHARS = 1500;
+
+function sanitizeHistory(history: unknown): Array<{ role: 'user' | 'assistant'; content: string }> {
+  if (!Array.isArray(history)) return [];
+  return history
+    .filter((m): m is { role: 'user' | 'assistant'; content: string } =>
+      !!m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim().length > 0)
+    .slice(-MAX_HISTORY_TURNS)
+    .map(m => ({ role: m.role, content: m.content.slice(0, MAX_HISTORY_CHARS) }));
+}
+
 // ─── Main Handler ────────────────────────────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  // Allow CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
+  // Same-origin only: the widget calls /api/chat from this site, so no CORS headers are sent.
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { message } = req.body || {};
+  if (isRateLimited(getClientIp(req))) {
+    res.setHeader('Retry-After', String(Math.ceil(RATE_LIMIT_WINDOW_MS / 1000)));
+    return res.status(429).json({ error: 'Too many messages. Please wait a minute and try again.' });
+  }
+
+  const { message, history } = req.body || {};
 
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return res.status(400).json({ error: 'Message is required' });
@@ -325,6 +361,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           model: model,
           messages: [
             { role: 'system', content: SYSTEM_PROMPT },
+            ...sanitizeHistory(history),
             { role: 'user', content: message.trim() },
           ],
           temperature: 0.3,
