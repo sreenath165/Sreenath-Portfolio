@@ -1,45 +1,28 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Home, ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function NotFound() {
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center">
-      <div className="container-custom text-center max-w-lg">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="text-[120px] md:text-[160px] font-bold leading-none gradient-text select-none">
-            404
-          </div>
-
-          <h1 className="text-2xl md:text-3xl font-bold mt-4 mb-3">
-            Page Not Found
-          </h1>
-
-          <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-            Oops! The page you're looking for doesn't exist. It might have been moved or the URL may be incorrect.
-          </p>
-
-          <div className="flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg">
-              <Link to="/">
-                <Home className="mr-2 h-4 w-4" />
-                Back to Home
-              </Link>
-            </Button>
-
-            <Button asChild variant="outline" size="lg" onClick={() => window.history.back()}>
-              <Link to="#" onClick={(e) => { e.preventDefault(); window.history.back(); }}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Go Back
-              </Link>
-            </Button>
-          </div>
-        </motion.div>
+    <div className="flex min-h-[calc(100vh-4rem)] items-center">
+      <div className="container-custom max-w-lg text-center">
+        <p className="font-display text-7xl font-bold text-muted-foreground/40 md:text-8xl">404</p>
+        <h1 className="mt-4 text-2xl font-bold md:text-3xl">Page not found</h1>
+        <p className="mx-auto mt-3 max-w-md text-muted-foreground">
+          The page you are looking for does not exist or has moved.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Button asChild size="lg">
+            <Link to="/">
+              <Home className="h-4 w-4" />
+              Back to home
+            </Link>
+          </Button>
+          <Button size="lg" variant="outline" onClick={() => window.history.back()}>
+            <ArrowLeft className="h-4 w-4" />
+            Go back
+          </Button>
+        </div>
       </div>
     </div>
   );

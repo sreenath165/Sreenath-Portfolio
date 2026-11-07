@@ -1,226 +1,163 @@
-import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Sun, Moon } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Download, Menu, Moon, Sun, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
 import { cn } from '@/lib/utils';
+import { profile, RESUME_DOWNLOAD_NAME, RESUME_PATH } from '@/data/profile';
 
-// Custom Portfolio Icon matching the favicon
-function PortfolioIcon({ className }: { className?: string }) {
-  return (
-    <svg 
-      viewBox="0 0 100 100" 
-      className={className}
-      fill="none"
-    >
-      <rect width="100" height="100" rx="16" className="fill-slate-900 dark:fill-slate-800"/>
-      <path 
-        d="M30 25 L50 15 L70 25 L70 50 L50 60 L30 50 Z" 
-        stroke="url(#navGrad)" 
-        strokeWidth="4"
-        fill="none"
-      />
-      <path d="M50 60 L50 80" stroke="url(#navGrad)" strokeWidth="4"/>
-      <path 
-        d="M30 50 L30 65 L50 75 L70 65 L70 50" 
-        stroke="url(#navGrad)" 
-        strokeWidth="4"
-        fill="none"
-      />
-      <circle cx="50" cy="38" r="8" fill="url(#navGrad)"/>
-      <defs>
-        <linearGradient id="navGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#f9a825"/>
-          <stop offset="100%" stopColor="#ff8f00"/>
-        </linearGradient>
-      </defs>
-    </svg>
-  );
-}
+type NavLink = { name: string; to: string; section?: string };
 
-const navLinks = [
-  { name: 'Home', path: '/' },
-  { name: 'About', path: '/about' },
-  { name: 'Skills', path: '/skills' },
-  { name: 'Experience', path: '/experience' },
-  { name: 'Projects', path: '/projects' },
-  { name: 'Certifications', path: '/certifications' },
-  { name: 'Education', path: '/education' },
-  { name: 'Resume', path: '/resume' },
-  { name: 'Contact', path: '/contact' },
+const navLinks: NavLink[] = [
+  { name: 'About', to: '/#about', section: 'about' },
+  { name: 'Experience', to: '/#experience', section: 'experience' },
+  { name: 'Projects', to: '/projects' },
+  { name: 'Contact', to: '/#contact', section: 'contact' },
 ];
+
+/** Highlights the home-page section currently in view. */
+function useActiveSection(enabled: boolean) {
+  const [active, setActive] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!enabled) {
+      setActive(null);
+      return;
+    }
+    const ids = navLinks.map(l => l.section).filter(Boolean) as string[];
+    const onScroll = () => {
+      const line = window.innerHeight * 0.35;
+      let current: string | null = null;
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= line) current = id;
+      }
+      // The contact section is short; treat reaching the bottom as "contact".
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) current = 'contact';
+      setActive(current);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [enabled]);
+
+  return active;
+}
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
-  const navigate = useNavigate();
+  const isHome = location.pathname === '/';
+  const activeSection = useActiveSection(isHome);
+
+  useEffect(() => setIsOpen(false), [location.pathname, location.hash]);
+
+  const isActive = (link: NavLink) =>
+    link.section ? isHome && activeSection === link.section : location.pathname.startsWith(link.to);
 
   const handleLogoClick = (e: React.MouseEvent) => {
-    if (location.pathname === '/') {
+    if (isHome) {
       e.preventDefault();
+      window.history.replaceState(null, '', '/');
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      // Force re-render by navigating away and back
-      navigate('/temp-redirect', { replace: true });
-      setTimeout(() => navigate('/', { replace: true }), 0);
     }
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/40">
-      <nav className="container-custom">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" onClick={handleLogoClick} className="flex items-center space-x-2 group">
-            <div className="rounded-lg group-hover:scale-105 transition-transform">
-              <PortfolioIcon className="h-9 w-9" />
-            </div>
-            <span className="text-lg font-semibold gradient-text hidden sm:inline">Portfolio</span>
-          </Link>
+    <header className="fixed inset-x-0 top-0 z-50 glass border-b border-border/70">
+      <nav className="container-custom flex h-16 items-center justify-between gap-4" aria-label="Main">
+        <Link to="/" onClick={handleLogoClick} className="flex min-w-0 items-center gap-3">
+          <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-foreground font-display text-sm font-bold text-background">
+            {profile.initials}
+          </span>
+          <span className="sr-only sm:hidden">{profile.name}, home</span>
+          <span className="hidden min-w-0 flex-col leading-tight sm:flex">
+            <span className="truncate font-display text-[15px] font-semibold text-foreground">{profile.name}</span>
+            <span className="truncate text-xs text-muted-foreground">{profile.role}</span>
+          </span>
+        </Link>
 
-          <div className="hidden lg:flex items-center space-x-1 relative">
-            {navLinks.map((link) => {
-              const isActive = location.pathname === link.path;
-              const isContact = link.name === 'Contact';
-              
-              return (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className="relative"
-                >
-                  <motion.div
-                    className={cn(
-                      "px-3 py-2 text-sm font-medium rounded-md transition-colors relative z-10",
-                      isContact
-                        ? cn(
-                            "bg-primary text-primary-foreground hover:bg-primary/90",
-                            isActive && "contact-glow"
-                          )
-                        : isActive
-                          ? "text-primary"
-                          : "text-muted-foreground hover:text-foreground"
-                    )}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  >
-                    {link.name}
-                  </motion.div>
-                  {isActive && !isContact && (
-                    <motion.div
-                      layoutId="navbar-indicator"
-                      className="absolute inset-0 bg-primary/10 rounded-md"
-                      transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                    />
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        <div className="hidden items-center gap-1 md:flex">
+          {navLinks.map(link => (
+            <Link
+              key={link.name}
+              to={link.to}
+              aria-current={isActive(link) ? 'page' : undefined}
+              className={cn(
+                'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                isActive(link) ? 'text-foreground bg-accent' : 'text-muted-foreground hover:text-foreground'
+              )}
             >
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                className="rounded-full relative overflow-hidden hover:bg-primary/20 hover:text-primary"
-              >
-                <AnimatePresence mode="wait">
-                  {theme === 'dark' ? (
-                    <motion.div
-                      key="sun"
-                      initial={{ rotate: -90, scale: 0, opacity: 0 }}
-                      animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                      exit={{ rotate: 90, scale: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                    >
-                      <Sun className="h-5 w-5" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="moon"
-                      initial={{ rotate: 90, scale: 0, opacity: 0 }}
-                      animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                      exit={{ rotate: -90, scale: 0, opacity: 0 }}
-                      transition={{ duration: 0.3, ease: "easeInOut" }}
-                    >
-                      <Moon className="h-5 w-5" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Button>
-            </motion.div>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setIsOpen(!isOpen)}
-            >
-              {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
-          </div>
+              {link.name}
+            </Link>
+          ))}
         </div>
 
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden border-t border-border/40"
-            >
-              <div className="py-4 space-y-1">
-                {navLinks.map((link) => {
-                  const isActive = location.pathname === link.path;
-                  const isContact = link.name === 'Contact';
-                  
-                  return (
-                    <Link
-                      key={link.path}
-                      to={link.path}
-                      onClick={() => setIsOpen(false)}
-                      className="relative block"
-                    >
-                      <motion.div
-                        className={cn(
-                          "px-4 py-2 text-sm font-medium rounded-md transition-colors relative z-10",
-                          isContact
-                            ? cn(
-                                "bg-primary text-primary-foreground hover:bg-primary/90",
-                                isActive && "contact-glow"
-                              )
-                            : isActive
-                              ? "text-primary"
-                              : "text-muted-foreground hover:text-foreground"
-                        )}
-                        whileHover={{ scale: 1.02, x: 4 }}
-                        whileTap={{ scale: 0.98 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                      >
-                        {link.name}
-                      </motion.div>
-                      {isActive && !isContact && (
-                        <motion.div
-                          layoutId="navbar-mobile-indicator"
-                          className="absolute inset-0 bg-primary/10 rounded-md"
-                          transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                        />
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+          >
+            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </Button>
+
+          <Button asChild size="sm" className="hidden sm:inline-flex">
+            <a href={RESUME_PATH} download={RESUME_DOWNLOAD_NAME}>
+              <Download className="h-4 w-4" />
+              Resume
+            </a>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setIsOpen(o => !o)}
+            aria-expanded={isOpen}
+            aria-controls="mobile-nav"
+            aria-label={isOpen ? 'Close menu' : 'Open menu'}
+          >
+            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
       </nav>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            id="mobile-nav"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden border-t border-border/70 md:hidden"
+          >
+            <div className="container-custom flex flex-col gap-1 py-3">
+              {navLinks.map(link => (
+                <Link
+                  key={link.name}
+                  to={link.to}
+                  className={cn(
+                    'rounded-md px-3 py-2.5 text-sm font-medium',
+                    isActive(link) ? 'bg-accent text-foreground' : 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {link.name}
+                </Link>
+              ))}
+              <Button asChild className="mt-2">
+                <a href={RESUME_PATH} download={RESUME_DOWNLOAD_NAME}>
+                  <Download className="h-4 w-4" />
+                  Download resume
+                </a>
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   );
 }

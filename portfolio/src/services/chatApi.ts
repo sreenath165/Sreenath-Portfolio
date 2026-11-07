@@ -42,7 +42,8 @@ export interface StreamCallbacks {
  */
 export async function sendChatMessageStream(
   message: string,
-  callbacks: StreamCallbacks
+  callbacks: StreamCallbacks,
+  history: Pick<ChatMessage, 'role' | 'content'>[] = []
 ): Promise<void> {
   try {
     const response = await fetch('/api/chat', {
@@ -50,7 +51,10 @@ export async function sendChatMessageStream(
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({
+        message,
+        history: history.map(({ role, content }) => ({ role, content })),
+      }),
     });
 
     if (!response.ok) {

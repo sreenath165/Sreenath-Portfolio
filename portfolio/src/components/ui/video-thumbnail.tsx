@@ -20,11 +20,15 @@ export function VideoThumbnail({ mediaType, mediaUrl, onClick }: VideoThumbnailP
   if (mediaType === 'pdf') {
     return (
       <div 
-        className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-primary/10 to-blue-500/10 cursor-pointer group"
+        className="w-full h-full flex flex-col items-center justify-center bg-muted cursor-pointer group"
         onClick={onClick}
+        role="button"
+        tabIndex={0}
+        aria-label="Open PDF document"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.(); } }}
       >
         <div className="relative">
-          <FileText className="h-16 w-16 text-primary/60 group-hover:text-primary transition-colors duration-300" />
+          <FileText className="h-14 w-14 text-muted-foreground group-hover:text-foreground transition-colors duration-300" />
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             <div className="w-10 h-10 rounded-full bg-primary/90 flex items-center justify-center shadow-lg">
               <Play className="h-5 w-5 text-primary-foreground ml-0.5" />
@@ -55,6 +59,10 @@ export function VideoThumbnail({ mediaType, mediaUrl, onClick }: VideoThumbnailP
         }
       }}
       onClick={onClick}
+      role="button"
+      tabIndex={0}
+      aria-label="Play demo video"
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.(); } }}
     >
       <video
         ref={videoRef}
@@ -63,12 +71,14 @@ export function VideoThumbnail({ mediaType, mediaUrl, onClick }: VideoThumbnailP
         loop
         playsInline
         preload="metadata"
+        aria-hidden="true"
+        tabIndex={-1}
         className="w-full h-full object-cover"
-              />
+      />
       
       {/* Play overlay */}
       <div className={`absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity duration-300 ${isHovering ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="w-14 h-14 rounded-full bg-primary/90 flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+        <div className="w-14 h-14 rounded-full bg-primary flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300">
           <Play className="h-7 w-7 text-primary-foreground ml-1" />
         </div>
       </div>

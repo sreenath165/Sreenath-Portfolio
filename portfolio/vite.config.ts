@@ -3,15 +3,18 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import chatHandler from './api/chat'
 
+// The dev server adapts Node's req/res to the Vercel handler signature; loose types are intentional here.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 function devApiMiddleware(apiKey: string): Plugin {
   return {
     name: 'dev-api-middleware',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         if (req.url === '/api/health') {
+          const configured = Boolean(process.env.GROQ_API_KEY || apiKey)
           res.setHeader('Content-Type', 'application/json')
-          res.statusCode = 200
-          res.end(JSON.stringify({ status: 'healthy' }))
+          res.statusCode = configured ? 200 : 503
+          res.end(JSON.stringify({ status: configured ? 'healthy' : 'unconfigured' }))
           return
         }
 
@@ -70,6 +73,8 @@ function devApiMiddleware(apiKey: string): Plugin {
   }
 }
 
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -80,6 +85,18 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),
+      },
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          // Split stable vendor code so repeat visits reuse cached chunks.
+          manualChunks: {
+            react: ['react', 'react-dom', 'react-router-dom'],
+            motion: ['framer-motion'],
+            forms: ['react-hook-form', '@hookform/resolvers', 'zod'],
+          },
+        },
       },
     },
     optimizeDeps: {

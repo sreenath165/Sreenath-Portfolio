@@ -2,52 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─────────────────────────────────────────────────────────────────────
+   Design tokens. Every page inherits these; change them here only.
+   Navy/slate carries the text and headings; amber is a sparing accent
+   (filled buttons, links, one highlight). Contrast checked for WCAG AA:
+   - foreground on background ............ ~16:1
+   - muted-foreground on background ...... ~7:1
+   - primary-foreground (navy) on amber .. ~9:1
+   - brand (dark amber text) on background ~6:1 light / ~9:1 dark
+   ───────────────────────────────────────────────────────────────────── */
 @layer base {
   :root {
-    /* Light theme: Soft cream/off-white background, dark navy text, orange accent */
-    --background: 40 30% 96%;
-    --foreground: 213 50% 15%;
-    --card: 40 25% 98%;
-    --card-foreground: 213 50% 15%;
-    --popover: 40 25% 98%;
-    --popover-foreground: 213 50% 15%;
-    --primary: 32 95% 50%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 40 20% 90%;
-    --secondary-foreground: 213 50% 15%;
-    --muted: 40 20% 90%;
-    --muted-foreground: 213 20% 40%;
-    --accent: 32 95% 50%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 38 92% 50%;
+    --primary-foreground: 222 47% 11%;
+    --brand: 26 90% 33%;
+    --secondary: 214 32% 94%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 214 32% 95%;
+    --muted-foreground: 215 19% 35%;
+    --accent: 214 32% 93%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 40 15% 85%;
-    --input: 40 15% 85%;
-    --ring: 32 95% 50%;
+    --success: 152 60% 28%;
+    --border: 214 24% 87%;
+    --input: 214 24% 82%;
+    --ring: 38 92% 45%;
     --radius: 0.75rem;
+    --header-h: 4rem;
   }
 
   .dark {
-    /* Dark theme: Dark navy background, white text, orange accent */
-    --background: 213 50% 12%;
-    --foreground: 0 0% 98%;
-    --card: 213 45% 15%;
-    --card-foreground: 0 0% 98%;
-    --popover: 213 45% 15%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 37 100% 50%;
-    --primary-foreground: 213 50% 12%;
-    --secondary: 213 40% 20%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 213 40% 20%;
-    --muted-foreground: 220 15% 65%;
-    --accent: 37 100% 50%;
-    --accent-foreground: 213 50% 12%;
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 213 40% 22%;
-    --input: 213 40% 22%;
-    --ring: 37 100% 50%;
+    --background: 222 47% 7%;
+    --foreground: 210 40% 96%;
+    --card: 222 40% 10%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 40% 10%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 38 92% 55%;
+    --primary-foreground: 222 47% 9%;
+    --brand: 38 95% 62%;
+    --secondary: 217 33% 16%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 70%;
+    --accent: 217 33% 18%;
+    --accent-foreground: 210 40% 96%;
+    --destructive: 0 63% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 55% 55%;
+    --border: 217 30% 19%;
+    --input: 217 30% 24%;
+    --ring: 38 92% 55%;
   }
 }
 
@@ -55,85 +67,94 @@
   * {
     @apply border-border;
   }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground font-sans antialiased;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display tracking-tight text-foreground;
+    line-height: 1.2;
+  }
+
+  /* Visible keyboard focus everywhere */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* Sections land below the fixed header when linked by hash */
+  section[id] {
+    scroll-margin-top: calc(var(--header-h) + 1rem);
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.3);
   }
 }
 
-html {
-  scroll-behavior: smooth;
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
-body {
-  font-family: 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+@layer components {
+  /* Max content width 1100px with 16/24/32px gutters */
+  .container-custom {
+    @apply mx-auto w-full max-w-[1100px] px-4 sm:px-6 lg:px-8;
+  }
+
+  /* 48px between sections on mobile, 96px on desktop */
+  .section {
+    @apply py-12 md:py-24;
+  }
+
+  .eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.14em] text-brand;
+  }
+
+  .link-brand {
+    @apply font-medium text-brand underline-offset-4 hover:underline;
+  }
+
+  /* The one neutral chip style */
+  .chip {
+    @apply inline-flex items-center rounded-md border border-border bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground;
+  }
+
+  .glass {
+    background: hsl(var(--background) / 0.85);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+  }
 }
 
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Space Grotesk', system-ui, sans-serif;
-}
-
-/* Custom scrollbar */
+/* Thin, theme-aware scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
-
 ::-webkit-scrollbar-track {
   background: hsl(var(--muted));
 }
-
 ::-webkit-scrollbar-thumb {
   background: hsl(var(--muted-foreground) / 0.3);
   border-radius: 4px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
-}
-
-/* Glass effect */
-.glass {
-  background: hsl(var(--background) / 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.dark .glass {
-  background: hsl(var(--background) / 0.7);
-}
-
-/* Gradient text */
-.gradient-text {
-  @apply bg-gradient-to-r from-primary to-amber-400 bg-clip-text text-transparent;
-}
-
-/* Card hover effect */
-.card-hover {
-  @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
-}
-
-/* Section padding */
-.section-padding {
-  @apply py-8 md:py-12;
-}
-
-/* Contact button glow animation */
-.contact-glow {
-  animation: contactGlow 2s ease-in-out infinite;
-  box-shadow: 0 0 20px hsl(var(--primary) / 0.5);
-}
-
-@keyframes contactGlow {
-  0%, 100% {
-    box-shadow: 0 0 15px hsl(var(--primary) / 0.4), 0 0 30px hsl(var(--primary) / 0.2);
-  }
-  50% {
-    box-shadow: 0 0 25px hsl(var(--primary) / 0.6), 0 0 50px hsl(var(--primary) / 0.3);
-  }
-}
-
-/* Container max width */
-.container-custom {
-  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
 }
