@@ -9,7 +9,7 @@ export function ScrollToTop() {
   useEffect(() => {
     const toggleVisibility = () => {
       // Show button if scrolled more than 100px OR if page is scrollable
-      if (window.scrollY > 100) {
+      if (window.scrollY > 600) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
@@ -18,7 +18,7 @@ export function ScrollToTop() {
 
     // Check on mount and scroll
     toggleVisibility();
-    window.addEventListener('scroll', toggleVisibility);
+    window.addEventListener('scroll', toggleVisibility, { passive: true });
     return () => window.removeEventListener('scroll', toggleVisibility);
   }, []);
 
@@ -36,12 +36,14 @@ export function ScrollToTop() {
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.8 }}
-          className="fixed bottom-6 right-6 z-50"
+          className="fixed bottom-5 right-4 z-50 sm:bottom-6 sm:right-6"
         >
           <Button
             onClick={scrollToTop}
             size="icon"
-            className="rounded-full h-12 w-12 shadow-lg bg-primary hover:bg-primary/90"
+            variant="outline"
+            aria-label="Back to top"
+            className="rounded-full h-11 w-11 shadow-md"
           >
             <ArrowUp className="h-5 w-5" />
           </Button>

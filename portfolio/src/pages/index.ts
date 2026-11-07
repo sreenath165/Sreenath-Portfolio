@@ -1,10 +1,5 @@
 export { Home } from './Home';
-export { About } from './About';
-export { Skills } from './Skills';
-export { Experience } from './Experience';
 export { Projects } from './Projects';
-export { Certifications } from './Certifications';
-export { Education } from './Education';
+export { CaseStudy } from './CaseStudy';
 export { Resume } from './Resume';
-export { Contact } from './Contact';
 export { NotFound } from './NotFound';
