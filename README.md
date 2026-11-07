@@ -39,24 +39,25 @@ A modern, high-performance **full-stack developer portfolio** with an integrated
 
 ### 🎨 Frontend — Portfolio Website
 
+The site is built for recruiters: one scrolling home page answers "what role, where now, what did they build, what stack, how do I reach them" in under 30 seconds.
+
 | Feature | Description |
 |---|---|
-| **Home Page** | Hero section with typewriter rotating roles, animated profile image, floating tech badges (AI/ML, Agents, Python, AWS, RAG, LLMs), and call-to-actions |
-| **About Page** | Introduction, career objectives, key strengths, and personal interests presented in animated cards |
-| **Skills Page** | Categorized skills — Programming, AI/ML, Backend & Frontend, Frameworks, DevOps & Cloud, Databases |
-| **Experience Page** | Timeline-style work history with expandable modal details, project breakdowns, tools used, and key achievements |
-| **Projects Page** | Searchable & filterable project gallery (14 projects) with multi-select technology filter chips, video/PDF media modals, and GitHub links |
-| **Certifications Page** | AWS, Azure, and Coursera certifications with verification links and certificate images |
-| **Education Page** | Academic timeline — B.Tech (VIT Chennai), Intermediate, SSC |
-| **Resume Page** | Interactive PDF viewer and one-click resume download |
-| **Contact Page** | Contact form with Zod schema validation, animated submission state, and direct social media links |
-| **Animated Page Transitions** | Smooth `AnimatePresence` fade + slide transitions between routes |
-| **Scroll Progress Bar** | Gradient progress indicator positioned beneath the navbar showing reading progress |
-| **Custom 404 Page** | Dedicated not-found page with gradient typography and quick navigation buttons |
-| **Dark/Light Theme** | Animated theme toggle with system preference detection and localStorage persistence |
-| **Responsive Design** | Fully responsive across mobile, tablet, and desktop with a mobile navigation drawer |
-| **Glassmorphism Navbar** | Fixed blur-effect navigation bar with active-link indicators |
-| **SEO Optimized** | Open Graph, Twitter Card meta tags, semantic HTML, and proper heading hierarchy |
+| **Home (single scroll)** | Hero with photo, one fixed role (AI Engineer), 2-line summary, *View projects* + *Download resume*, and a proof strip (~60% faster proposals, ~70% less manual effort, 6 certifications, current employer) |
+| **Featured work** | Three case-study cards with a result line each |
+| **Experience timeline** | Both roles visible without clicks: action + tech + result bullets with the outcome numbers in bold; per-role project details expand inline |
+| **Skills** | Eight core skills with proof ("Python — Propello, QRF-to-BOQ"), then 5 groups split into *Core* and *Also worked with* |
+| **Certifications & education** | AWS/Azure certifications (verify + certificate image preview) separated from Coursera courses; B.Tech as the main education card |
+| **About & contact** | 90-word summary, 4 provable strengths, *Beyond code*; contact with email/LinkedIn/GitHub buttons, reply-time promise and a validated form |
+| **Projects page** | 4 featured case studies, other projects, and a collapsed *More projects* section (college work, Unity games); 5 category filters, search, clickable tech chips, video/PDF modals |
+| **Case studies** (`/projects/:slug`) | Problem, what I built, architecture diagram, stack, result, links |
+| **Resume page** | Download, open in new tab, inline preview on larger screens; the header *Resume* button downloads the PDF directly |
+| **Old URLs kept** | `/about`, `/skills`, `/experience`, `/certifications`, `/education`, `/contact` redirect to the matching home section |
+| **Design system** | Tokens in `src/styles/globals.css`: navy/slate text, amber as a sparing accent, WCAG AA contrast in both themes, 12px cards, one chip style, 1100px max width |
+| **Light by default** | Light theme first; dark is a remembered toggle with no flash on load |
+| **Accessibility** | Skip link, visible keyboard focus, labelled controls and dialogs, alt text, `prefers-reduced-motion` respected |
+| **SEO** | One name and title everywhere, canonical/og:url on the live domain, 1200×630 preview image, JSON-LD, `robots.txt`, `sitemap.xml` |
+| **Performance** | Code-split pages and chat widget, vendor chunks, non-blocking fonts, WebP images, compressed demo videos (Lighthouse: 93 / 100 / 100 / 100) |
 
 ### 🤖 AI Chatbot — "Sree AI"
 
@@ -167,64 +168,49 @@ Portfolio/
     ├── public/                        # Static assets
     │   ├── favicon.svg                # Browser favicon
     │   ├── images/                    # Profile & project images
-    │   │   ├── profile.png            # Main profile photo
+    │   │   ├── profile-portrait.webp  # Hero photo (desktop) — profile-headshot.webp on phones
+    │   │   ├── og-image.png           # 1200x630 link preview
     │   │   ├── projects/              # Screenshots and media assets
     │   │   └── certifications/        # Certificate badges & credentials
     │   ├── resume/                    # Resume PDF files
     │   │   └── SaiSreenath_Resume.pdf
     │   └── videos/                    # Project video demo recordings
     │
+    ├── scripts/og-image/              # Template + script for the 1200x630 link-preview image
+    │
     └── src/                           # Frontend source code
         ├── main.tsx                   # React root entry point
-        ├── App.tsx                    # Route definitions & router setup
-        ├── index.css                  # Global CSS & HSL theme definitions
-        │
-        ├── components/
-        │   ├── common/                # Shared UI widgets
-        │   │   ├── ChatbotButton.tsx  # Sree AI floating chatbot widget
-        │   │   ├── AnimatedOutlet.tsx # Route transition wrapper
-        │   │   ├── ScrollProgress.tsx # Scroll progress indicator bar
-        │   │   ├── ScrollToTop.tsx    # Smooth scroll to top button
-        │   │   ├── PageHeader.tsx     # Standardized page title component
-        │   │   └── SectionWrapper.tsx # Framer Motion animated container
-        │   │
-        │   ├── layout/                # Page layout components
-        │   │   ├── Layout.tsx         # Master layout (Navbar, Outlet, Footer, Chatbot)
-        │   │   ├── Navbar.tsx         # Glassmorphism header with theme toggle
-        │   │   └── Footer.tsx         # Footer with copyright and social links
-        │   │
-        │   └── ui/                    # Base UI components
-        │       ├── button.tsx         # Button with CVA variants
-        │       ├── card.tsx           # Card containers
-        │       ├── badge.tsx          # Tag and status badges
-        │       ├── input.tsx          # Text input components
-        │       ├── textarea.tsx       # Textarea component
-        │       ├── media-modal.tsx    # Video/PDF preview modal
-        │       └── video-thumbnail.tsx# Video player thumbnail
-        │
-        ├── pages/                     # Route pages
-        │   ├── Home.tsx               # Hero page with typewriter role
-        │   ├── About.tsx              # Background and bio
-        │   ├── Skills.tsx             # Categorized technical skill matrix
-        │   ├── Experience.tsx         # Work history and achievements
-        │   ├── Projects.tsx           # Searchable & filterable project gallery
-        │   ├── Certifications.tsx     # Professional credentials
-        │   ├── Education.tsx          # Educational qualifications
-        │   ├── Resume.tsx             # Interactive resume viewer
-        │   ├── Contact.tsx            # Contact form
-        │   └── NotFound.tsx           # Custom 404 page
+        ├── App.tsx                    # Routes, lazy pages, old-URL redirects
+        ├── styles/globals.css         # Design tokens (colors, spacing, radius) + base styles
         │
         ├── data/
-        │   └── profile.ts             # Central source of truth for portfolio data
+        │   └── profile.ts             # ⭐ All content: hero, proof stats, skills, experience, projects, case studies, certs
         │
-        ├── services/
-        │   └── chatApi.ts             # Chat service client (fetch & typing simulation)
+        ├── sections/                  # Home-page sections, in page order
+        │   ├── Hero.tsx               # Photo, role, summary, CTAs, proof strip
+        │   ├── FeaturedWork.tsx       # 3 case-study cards
+        │   ├── ExperienceSection.tsx  # Timeline with outcome bullets
+        │   ├── SkillsSection.tsx      # Core skills with proof + 5 groups
+        │   ├── CredentialsSection.tsx # Certifications, courses, education
+        │   ├── AboutSection.tsx       # Summary, strengths, beyond code
+        │   └── ContactSection.tsx     # Email/LinkedIn/GitHub + form
         │
-        ├── hooks/
-        │   └── useTheme.ts            # Dark/light theme toggle hook
+        ├── pages/
+        │   ├── Home.tsx               # Composes the sections
+        │   ├── Projects.tsx           # Filters, search, featured / other / more
+        │   ├── CaseStudy.tsx          # /projects/:slug
+        │   ├── Resume.tsx             # PDF download and preview
+        │   └── NotFound.tsx           # Custom 404 page
         │
-        └── lib/
-            └── utils.ts               # Utility helpers (cn class merging)
+        ├── components/
+        │   ├── common/                # Section, PageHeader, FadeIn, ChatbotButton, ScrollProgress, ScrollToTop…
+        │   ├── layout/                # Layout, Navbar (4 links + Resume), Footer
+        │   ├── projects/              # FeaturedProjectCard, ProjectCard, TechChips, ArchitectureDiagram
+        │   └── ui/                    # Button, Card, Badge, Input, MediaModal, VideoThumbnail…
+        │
+        ├── services/chatApi.ts        # Chat client (history + typing simulation)
+        ├── hooks/useTheme.ts          # Light-default theme toggle
+        └── lib/utils.ts               # cn() class merging
 ```
 
 ---
@@ -233,26 +219,20 @@ Portfolio/
 
 ### Routing
 
-The application uses **React Router v7** with nested routes and animated transitions:
-
 | Route | Page | Purpose |
 |---|---|---|
-| `/` | `Home` | Hero section, animated headline, floating badges |
-| `/about` | `About` | Bio, career objectives, strengths, personal intro |
-| `/skills` | `Skills` | Categorized tech stack cards with skill badges |
-| `/experience` | `Experience` | Career timeline with detailed modals |
-| `/projects` | `Projects` | Filterable project showcase with video/PDF modals |
-| `/certifications` | `Certifications` | Verified credential cards with direct verification links |
-| `/education` | `Education` | Academic milestones |
-| `/resume` | `Resume` | Embedded PDF preview & download options |
-| `/contact` | `Contact` | Contact form with validation and social links |
-| `*` | `NotFound` | Custom 404 page for unmatched URLs |
+| `/` | `Home` | Single scrolling page: hero + proof strip, featured work, experience, skills, credentials, about, contact |
+| `/projects` | `Projects` | Featured case studies, other projects, collapsible *More projects*, filters and search |
+| `/projects/:slug` | `CaseStudy` | `propello`, `qrf-to-boq`, `prodsync`, `rag-faq-assistant` |
+| `/resume` | `Resume` | PDF download and preview |
+| `/about` … `/contact` | redirect | Old page URLs redirect to `/#section` so shared links keep working |
+| `*` | `NotFound` | Custom 404 page |
 
 ### Theming System
 
-- **HSL CSS Variables** in `index.css` for instant theme toggling without stylesheet reloads.
-- **Persistent Selection** stored in `localStorage` and automatically synchronized with the user's OS preference (`prefers-color-scheme`).
-- Primary brand accent: Warm Amber/Gold (`--primary: 37 100% 50%`).
+- **Design tokens** (HSL CSS variables) live in `src/styles/globals.css`; Tailwind maps them to `bg-background`, `text-foreground`, `text-brand`, etc.
+- **Light by default**; the dark toggle is stored in `localStorage` and applied before first paint by an inline script in `index.html`.
+- Amber (`--primary: 38 92% 50%`) is used for filled buttons and accents only; buttons use navy text on amber (8.4:1). Link-coloured text uses the darker `--brand` token.
 
 ---
 
@@ -353,21 +333,14 @@ Run these commands from the root directory or inside `portfolio/`:
 
 ## 🆕 Recently Added Features
 
-### 1. 🎯 Typewriter Rotating Roles (Home Page)
-The hero section dynamically types and deletes role titles:
-- *AI/ML Engineer → Python Developer → Agentic AI Specialist → Cloud Architect → Full-Stack Developer → RAG Pipeline Expert*
+### Recruiter-focused redesign
+Rebuilt the UI around the *Portfolio UI/UX Revamp Guide*: a single role (AI Engineer), proof above the fold, case studies with architecture diagrams, 4-link navigation plus a Resume button, a calmer navy/amber design system, light theme by default, and old URLs redirected to the new sections.
 
-### 2. 📊 Scroll Progress Bar
-A smooth, hardware-accelerated gradient bar beneath the navigation bar reflecting current page scroll depth.
+### Chatbot improvements
+Sree AI now remembers the last few turns (follow-up questions work), is rate-limited per visitor, and shows offline when the Groq key is missing.
 
-### 3. 🚫 Custom 404 Not Found Page
-A dedicated 404 page styled with gradient typography, friendly messaging, and intuitive navigation links.
-
-### 4. 🏷️ Multi-Select Technology Filter Chips (Projects Page)
-Interactive technology chips on the Projects page extracted directly from project data, allowing instant filtering by specific tools and stacks.
-
-### 5. ✨ Animated Page Transitions
-Framer Motion `AnimatePresence` wrapper delivering smooth entry and exit transitions across all route changes.
+### Content updates
+All page content lives in `portfolio/src/data/profile.ts`. To regenerate the link-preview image after changing the photo or headline, run `node scripts/og-image/render.cjs` from `portfolio/`.
 
 ---
 

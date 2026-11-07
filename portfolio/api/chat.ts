@@ -8,7 +8,8 @@ const PORTFOLIO_CONTEXT = `
 ## PROFILE
 - Name: Sai Sreenath Reddy Yarradoddi
 - Short Name: Sai Sreenath
-- Role: Software Engineer — Python | AI/ML | Agentic AI | AWS | React
+- Role: AI Engineer — Agentic AI, LLM & RAG systems | Python | AWS
+- Target roles: AI Engineer, Forward Deployed Engineer (open to full-time roles)
 - Email: saisreenathreddyy@gmail.com
 - Phone: +91 8688718090
 - Location: Hyderabad, India
@@ -116,59 +117,61 @@ Project B: Telangana Government Voice Assistant App
 
 ---
 
-## PROJECTS (14 Total)
+## PROJECTS (15 Total)
 
-### Featured Projects
+### Featured Projects (full case studies on the site at /projects)
 
-1. Propello — AI Proposal Builder (Featured)
-   Scalable backend integrations using Python, Agentic AI, RAG, FastAPI, React, and MongoDB for end-to-end AI-driven proposal workflows.
-   Technologies: Python, FastAPI, React, MongoDB, Agentic AI, RAG
-   Features: End-to-end workflow automation, LLM-based AI logic, Intelligent agent orchestration
+1. Propello — AI Proposal Builder (Sutherland)
+   Agentic AI proposal platform for IT service teams: RAG over templates and past proposals, LLM orchestration, FastAPI + React product.
+   Technologies: Python, FastAPI, React, MongoDB, Agentic AI, RAG, AWS Bedrock, LangChain
+   Result: ~60% faster proposal creation
 
-2. ProdSync — Deployment Orchestration (Featured)
-   Automated deployment orchestration platform with AI-driven intelligence, natural language processing, and DevOps integration.
+2. QRF-to-BOQ Automation System (Versalence, enterprise clients)
+   Industry-first Agentic AI system converting Quotation Request Forms into Bills of Quantities with custom RAG + Gemini LLM orchestration, Pandas and OpenPyXL.
+   Result: ~70% less manual effort
+
+3. ProdSync — Deployment Orchestration
+   Deployment orchestration platform with natural-language deployments, JIRA integration, real-time monitoring and intelligent rollback.
    Technologies: Python, FastAPI, React, TypeScript, AWS Bedrock, Tailwind CSS
-   Features: Natural language deployment, JIRA integration, Real-time monitoring, Intelligent rollback
 
-3. Smart Weed Detection Robot (Featured)
-   Mobile-controlled robot using YOLOv5 and CNN for weed detection and targeted herbicide spraying with Android app integration.
-   Technologies: Python, YOLOv5, CNN, Android, Bluetooth, TensorFlow
-   Features: Real-time weed detection, Soil moisture analysis, Live video streaming, Mobile control
+4. AI-Powered FAQ Assistant (RAG) — GPT-3.5 with LangChain & FAISS for context-aware FAQ answers with conversation memory (Streamlit interface)
+   GitHub: https://github.com/sreenath165/AI-Powered-FAQ-Assistant-with-Context-Aware-Memory
 
 ### Other Projects
-
-4. AI-Powered FAQ Assistant — GPT-3.5-based with LangChain & FAISS for context-aware FAQ responses (Streamlit interface)
-   GitHub: https://github.com/sreenath165/AI-Powered-FAQ-Assistant-with-Context-Aware-Memory
 
 5. Customer Support Ticket Analyzer — Agentic AI for intelligent classification/routing using multi-agent architecture
    GitHub: https://github.com/sreenath165/Customer-Support-Ticket-Analyzer-And-Router
 
-6. E-Commerce Sales & Inventory Management — Full-stack platform with analytics dashboard
-   GitHub: https://github.com/sreenath165/E-Commerce-Sales-and-Inventory-Management
+6. Smart Weed Detection Robot — Mobile-controlled robot using YOLOv5 and CNN for weed detection and targeted herbicide spraying with Android app integration (Python, YOLOv5, CNN, Android, Bluetooth, TensorFlow)
 
-7. Blockchain Hospital Record Management — Blockchain-based tamper-proof medical data storage
-   GitHub: https://github.com/sreenath165/Blockchain-based-Hospital-Record-management
+7. Weed Detection & Plucking Robot (Hybrid CNN) — Autonomous robot with Hybrid CNN
+   GitHub: https://github.com/sreenath165/Weed-Detection-And-Plucking-Robot-Using-Hybrid-CNN
 
-8. Post-Quantum Lattice-Based RSA — Lightweight post-quantum cryptographic implementation
-   GitHub: https://github.com/sreenath165/A-Lightweight-Post-Quantum-Lattice-Based-RSA-for-Secure-Communications
-
-9. Fertilizer Prediction using ML — ML model for optimal fertilizer recommendations
+8. Fertilizer Prediction using ML — ML model for optimal fertilizer recommendations
    GitHub: https://github.com/sreenath165/Fertilizer-Prediction-using-ML
 
-10. Freelance Platform — Web-based freelance marketplace
+9. Post-Quantum Lattice-Based RSA — Lightweight post-quantum cryptographic implementation
+   GitHub: https://github.com/sreenath165/A-Lightweight-Post-Quantum-Lattice-Based-RSA-for-Secure-Communications
+
+### More Projects (college work and Unity games)
+
+10. E-Commerce Sales & Inventory Management — Full-stack platform with analytics dashboard
+    GitHub: https://github.com/sreenath165/E-Commerce-Sales-and-Inventory-Management
+
+11. Blockchain Hospital Record Management — Blockchain-based tamper-proof medical data storage
+    GitHub: https://github.com/sreenath165/Blockchain-based-Hospital-Record-management
+
+12. Freelance Platform — Web-based freelance marketplace
     GitHub: https://github.com/sreenath165/Freelance-Platform
 
-11. 2D Bee Run Game — Unity endless runner game
+13. 2D Bee Run Game — Unity endless runner game
     GitHub: https://github.com/sreenath165/2D-Bee-run-game-using-Unity
 
-12. 3D Ball Game — Unity physics-based 3D game
+14. 3D Ball Game — Unity physics-based 3D game
     GitHub: https://github.com/sreenath165/3D-Ball-game-using-Unity
 
-13. Immersive 3D Environment — Unity realistic 3D environment
+15. Immersive 3D Environment — Unity realistic 3D environment
     GitHub: https://github.com/sreenath165/Immersive-Realistic-3D-Environment-using-Unity
-
-14. Weed Detection & Plucking Robot (Hybrid CNN) — Autonomous robot with Hybrid CNN
-    GitHub: https://github.com/sreenath165/Weed-Detection-And-Plucking-Robot-Using-Hybrid-CNN
 
 ---
 
@@ -213,8 +216,9 @@ Project B: Telangana Government Voice Assistant App
 
 ## ROLE FIT ANALYSIS
 
-Based on the above profile, Sai Sreenath is an excellent fit for:
-- AI/ML Engineer roles (Agentic AI, RAG, LLM systems)
+Sai Sreenath is primarily targeting AI Engineer and Forward Deployed Engineer roles. Based on the above profile, he is an excellent fit for:
+- AI Engineer / AI/ML Engineer roles (Agentic AI, RAG, LLM systems)
+- Forward Deployed Engineer roles (taking AI systems from prototype to deployment with the teams and clients who use them — e.g. the QRF-to-BOQ system for enterprise clients and the voice-assistant app delivered for the Telangana Government)
 - Python Backend Developer roles (FastAPI, Flask, REST APIs)
 - Full-Stack Developer roles (React + Python backend)
 - Cloud Engineer / DevOps roles (AWS, Azure, Docker, Kubernetes)
@@ -223,14 +227,14 @@ Based on the above profile, Sai Sreenath is an excellent fit for:
 - Data Engineer roles (data pipelines, ML infrastructure)
 - Research Engineer roles (NLP, Computer Vision)
 
-He is available for freelancing, contract work, and full-time opportunities.
+He is open to full-time roles first (AI Engineer, Forward Deployed Engineer), and also open to contract work.
 `;
 
 // ─── System Prompt ───────────────────────────────────────────────────
 const SYSTEM_PROMPT = `You are "Sree AI", the friendly and professional portfolio assistant for Sai Sreenath Reddy Yarradoddi.
 
 ## YOUR IDENTITY
-You represent Sai Sreenath Reddy Yarradoddi — a Software Engineer specializing in AI/ML, Agentic AI, RAG pipelines, and cloud technologies (AWS, Azure). You are embedded in his portfolio website.
+You represent Sai Sreenath Reddy Yarradoddi — a AI Engineer specializing in Agentic AI, LLM applications, RAG pipelines, and cloud technologies (AWS, Azure). You are embedded in his portfolio website.
 
 ## HOW TO ANSWER
 - Use the PORTFOLIO CONTEXT below as your ONLY source of truth.
@@ -423,9 +427,7 @@ function cleanResponse(text: string): string {
   cleaned = cleaned.replace(/```/g, '');
   cleaned = cleaned.replace(/^#+\s/gm, '');
 
-  while (cleaned.includes('  ')) {
-    cleaned = cleaned.replace(/  /g, ' ');
-  }
+  cleaned = cleaned.replace(/ {2,}/g, ' ');
 
   return cleaned.trim();
 }

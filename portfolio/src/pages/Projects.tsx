@@ -1,325 +1,194 @@
-import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { FolderGit2, Search, X, ExternalLink } from 'lucide-react';
-import { FaGithub } from 'react-icons/fa';
+import { useMemo, useState } from 'react';
+import { ChevronDown, Search, X } from 'lucide-react';
 import { PageHeader } from '@/components/common/PageHeader';
-import { SectionWrapper } from '@/components/common/SectionWrapper';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { FadeIn } from '@/components/common/FadeIn';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { MediaModal } from '@/components/ui/media-modal';
-import { VideoThumbnail } from '@/components/ui/video-thumbnail';
-import { projects } from '@/data/profile';
+import { FeaturedProjectCard } from '@/components/projects/FeaturedProjectCard';
+import { ProjectCard } from '@/components/projects/ProjectCard';
+import { projectCategories, projects, type Project, type ProjectCategory } from '@/data/profile';
+import { cn } from '@/lib/utils';
 
-interface Project {
-  id: number;
-  title: string;
-  description: string;
-  technologies: string[];
-  features: string[];
-  image: string;
-  github: string;
-  demo?: string;
-  featured?: boolean;
-  viewDetails?: boolean;
-  mediaType?: 'video' | 'pdf' | 'link';
-  mediaUrl?: string;
+type Filter = 'All' | ProjectCategory;
+const filters: Filter[] = ['All', ...projectCategories];
+
+function matches(project: Project, query: string) {
+  const q = query.toLowerCase();
+  return (
+    project.title.toLowerCase().includes(q) ||
+    project.description.toLowerCase().includes(q) ||
+    project.technologies.some(t => t.toLowerCase().includes(q)) ||
+    project.features.some(f => f.toLowerCase().includes(q))
+  );
 }
-
-// Extract unique technologies from all projects, sorted by frequency
-function getUniqueTechnologies(): string[] {
-  const techCount = new Map<string, number>();
-  projects.forEach(p => {
-    p.technologies.forEach(tech => {
-      techCount.set(tech, (techCount.get(tech) || 0) + 1);
-    });
-  });
-  return Array.from(techCount.entries())
-    .sort((a, b) => b[1] - a[1])
-    .map(([tech]) => tech);
-}
-
-const allTechnologies = getUniqueTechnologies();
 
 export function Projects() {
-  const [filter, setFilter] = useState<'all' | 'featured'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTechs, setSelectedTechs] = useState<string[]>([]);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [filter, setFilter] = useState<Filter>('All');
+  const [query, setQuery] = useState('');
+  const [moreOpen, setMoreOpen] = useState(false);
+  const [mediaProject, setMediaProject] = useState<Project | null>(null);
 
-  const toggleTech = (tech: string) => {
-    setSelectedTechs(prev =>
-      prev.includes(tech) ? prev.filter(t => t !== tech) : [...prev, tech]
-    );
-  };
+  const filtered = useMemo(() => {
+    const q = query.trim();
+    return projects.filter(p => (filter === 'All' || p.categories.includes(filter)) && (!q || matches(p, q)));
+  }, [filter, query]);
 
-  const clearFilters = () => {
-    setSelectedTechs([]);
-    setSearchQuery('');
-    setFilter('all');
-  };
+  const featured = filtered.filter(p => p.tier === 'featured');
+  const main = filtered.filter(p => p.tier === 'main');
+  const more = filtered.filter(p => p.tier === 'more');
+  const isFiltering = filter !== 'All' || query.trim() !== '';
+  const showMore = moreOpen || (isFiltering && main.length + featured.length === 0);
 
-  const handleViewDetails = (project: Project) => {
+  const openMedia = (project: Project) => {
     if (project.mediaType === 'link' && project.mediaUrl) {
-      window.open(project.mediaUrl, '_blank');
+      window.open(project.mediaUrl, '_blank', 'noopener,noreferrer');
     } else if (project.mediaType && project.mediaUrl) {
-      setSelectedProject(project);
-      setModalOpen(true);
-    } else {
-      window.open(project.github, '_blank');
+      setMediaProject(project);
     }
   };
 
-  const filteredProjects = useMemo(() => {
-    let result = filter === 'featured' 
-      ? projects.filter(p => p.featured) 
-      : projects;
-    
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      result = result.filter(project => 
-        project.title.toLowerCase().includes(query) ||
-        project.description.toLowerCase().includes(query) ||
-        project.technologies.some(tech => tech.toLowerCase().includes(query)) ||
-        project.features.some(feature => feature.toLowerCase().includes(query))
-      );
-    }
-
-    if (selectedTechs.length > 0) {
-      result = result.filter(project =>
-        selectedTechs.every(tech =>
-          project.technologies.some(t => t.toLowerCase() === tech.toLowerCase())
-        )
-      );
-    }
-    
-    return result;
-  }, [filter, searchQuery, selectedTechs]);
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+  const selectTech = (tech: string) => setQuery(q => (q.toLowerCase() === tech.toLowerCase() ? '' : tech));
+  const clear = () => {
+    setFilter('All');
+    setQuery('');
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
-
-  const hasActiveFilters = selectedTechs.length > 0 || searchQuery.trim() !== '' || filter !== 'all';
+  const countFor = (f: Filter) => (f === 'All' ? projects.length : projects.filter(p => p.categories.includes(f)).length);
 
   return (
-    <SectionWrapper>
-      <PageHeader
-        title="Projects"
-        subtitle="Showcasing my work and the solutions I've built"
-      />
+    <div className="section">
+      <div className="container-custom">
+        <PageHeader
+          eyebrow="Projects"
+          title="Work and case studies"
+          subtitle="Production AI systems first, then other engineering and ML work. Older college projects and Unity games are under More projects."
+        />
 
-      <div className="max-w-md mx-auto mb-6">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="text"
-            placeholder="Search projects by name, technology, or keyword..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 pr-10"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
+        <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div role="group" aria-label="Filter by category" className="flex flex-wrap gap-2">
+            {filters.map(f => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFilter(f)}
+                aria-pressed={filter === f}
+                className={cn(
+                  'rounded-lg border px-3.5 py-1.5 text-sm font-medium transition-colors',
+                  filter === f
+                    ? 'border-foreground bg-foreground text-background'
+                    : 'border-border bg-card text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {f} <span className={cn('ml-1 text-xs', filter === f ? 'opacity-80' : 'opacity-70')}>{countFor(f)}</span>
+              </button>
+            ))}
+          </div>
+          <div className="relative w-full md:max-w-xs">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+            <Input
+              type="search"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Search by name or technology"
+              aria-label="Search projects"
+              className="pl-9 pr-9"
+            />
+            {query && (
+              <button
+                type="button"
+                onClick={() => setQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
+                aria-label="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Filter chips */}
-      <div className="flex justify-center gap-4 mb-4">
-        <Button
-          variant={filter === 'all' ? 'default' : 'outline'}
-          onClick={() => setFilter('all')}
-        >
-          All Projects ({filter === 'all' && (searchQuery || selectedTechs.length > 0) ? filteredProjects.length : projects.length})
-        </Button>
-        <Button
-          variant={filter === 'featured' ? 'default' : 'outline'}
-          onClick={() => setFilter('featured')}
-        >
-          Featured ({projects.filter(p => p.featured).length})
-        </Button>
-      </div>
+        <p className="sr-only" aria-live="polite">
+          {filtered.length} projects shown
+        </p>
 
-      {/* Technology filter chips */}
-      <div className="flex flex-wrap justify-center gap-2 mb-8 max-w-3xl mx-auto">
-        {allTechnologies.map(tech => (
-          <button
-            key={tech}
-            onClick={() => toggleTech(tech)}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 border ${
-              selectedTechs.includes(tech)
-                ? 'bg-primary text-primary-foreground border-primary shadow-md scale-105'
-                : 'bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground'
-            }`}
-          >
-            {tech}
-          </button>
-        ))}
-        {hasActiveFilters && (
-          <button
-            onClick={clearFilters}
-            className="px-3 py-1 rounded-full text-xs font-medium bg-destructive/10 text-destructive border border-destructive/20 hover:bg-destructive/20 transition-colors"
-          >
-            Clear All ✕
-          </button>
+        {filtered.length === 0 && (
+          <div className="rounded-xl border border-dashed border-border py-16 text-center">
+            <p className="text-lg font-medium">No projects match{query ? ` "${query}"` : ''}.</p>
+            <Button variant="outline" size="sm" className="mt-4" onClick={clear}>
+              Clear filters
+            </Button>
+          </div>
+        )}
+
+        {featured.length > 0 && (
+          <section aria-labelledby="featured-heading" className="mb-14">
+            <h2 id="featured-heading" className="mb-5 text-xl font-semibold">
+              Featured case studies
+            </h2>
+            <div className="grid gap-5 md:grid-cols-2">
+              {featured.map(p => (
+                <FadeIn key={p.id}>
+                  <FeaturedProjectCard project={p} />
+                </FadeIn>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {main.length > 0 && (
+          <section aria-labelledby="other-heading" className="mb-14">
+            <h2 id="other-heading" className="mb-5 text-xl font-semibold">
+              Other projects
+            </h2>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {main.map(p => (
+                <FadeIn key={p.id}>
+                  <ProjectCard project={p} onOpenMedia={openMedia} onSelectTech={selectTech} selectedTech={query} />
+                </FadeIn>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {more.length > 0 && (
+          <section aria-labelledby="more-heading">
+            <h2 id="more-heading">
+              <button
+                type="button"
+                onClick={() => setMoreOpen(o => !o)}
+                aria-expanded={showMore}
+                aria-controls="more-projects"
+                className="flex w-full items-center justify-between rounded-xl border border-border bg-card px-5 py-4 text-left text-base font-semibold transition-colors hover:bg-accent"
+              >
+                <span>
+                  More projects{' '}
+                  <span className="font-normal text-muted-foreground">
+                    ({more.length}) · college work and Unity games
+                  </span>
+                </span>
+                <ChevronDown className={cn('h-5 w-5 transition-transform', showMore && 'rotate-180')} aria-hidden="true" />
+              </button>
+            </h2>
+            {showMore && (
+              <div id="more-projects" className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {more.map(p => (
+                  <ProjectCard key={p.id} project={p} onOpenMedia={openMedia} onSelectTech={selectTech} selectedTech={query} />
+                ))}
+              </div>
+            )}
+          </section>
         )}
       </div>
 
-      {filteredProjects.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-12"
-        >
-          <Search className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-lg text-muted-foreground">
-            No projects found{searchQuery ? ` for "${searchQuery}"` : ''}
-            {selectedTechs.length > 0 ? ` with ${selectedTechs.join(', ')}` : ''}
-          </p>
-          <p className="text-sm text-muted-foreground mt-2">Try different filters or keywords</p>
-          <Button variant="outline" size="sm" className="mt-4" onClick={clearFilters}>
-            Clear Filters
-          </Button>
-        </motion.div>
-      )}
-
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
-      >
-        {filteredProjects.map((project) => (
-          <motion.div key={project.id} variants={itemVariants}>
-            <Card className="h-full flex flex-col card-hover overflow-hidden">
-              <div className="aspect-video bg-muted relative overflow-hidden">
-                {(project as Project).mediaType && (project as Project).mediaType !== 'link' && (project as Project).mediaUrl ? (
-                  <VideoThumbnail
-                    mediaType={(project as Project).mediaType as 'video' | 'pdf'}
-                    mediaUrl={(project as Project).mediaUrl!}
-                    onClick={() => handleViewDetails(project as Project)}
-                  />
-                ) : (
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      target.parentElement!.innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-full text-muted-foreground p-4 bg-gradient-to-br from-primary/5 to-blue-500/5">
-                          <svg class="h-16 w-16 text-primary/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
-                          </svg>
-                        </div>
-                      `;
-                    }}
-                  />
-                )}
-                {project.featured && (
-                  <Badge className="absolute top-3 right-3">Featured</Badge>
-                )}
-              </div>
-
-              <CardContent className="flex-1 p-6">
-                <div className="flex items-start gap-3 mb-3">
-                  <FolderGit2 className="h-5 w-5 text-primary mt-1 flex-shrink-0" />
-                  <h3 className="text-lg font-bold">{project.title}</h3>
-                </div>
-                
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                  {project.description}
-                </p>
-
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-2">Key Features:</p>
-                    <ul className="text-xs text-muted-foreground space-y-1">
-                      {project.features.slice(0, 3).map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <span className="w-1 h-1 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1.5">
-                    {project.technologies.slice(0, 5).map((tech, idx) => (
-                      <Badge
-                        key={idx}
-                        variant={selectedTechs.includes(tech) ? 'default' : 'secondary'}
-                        className="text-xs cursor-pointer"
-                        onClick={() => toggleTech(tech)}
-                      >
-                        {tech}
-                      </Badge>
-                    ))}
-                    {project.technologies.length > 5 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{project.technologies.length - 5}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-
-              <CardFooter className="p-6 pt-0">
-                {(project as Project).mediaType && (project as Project).mediaUrl ? (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full"
-                    onClick={() => handleViewDetails(project as Project)}
-                  >
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    View Details
-                  </Button>
-                ) : (
-                  <Button asChild variant="outline" size="sm" className="w-full">
-                    <a href={project.github} target="_blank" rel="noopener noreferrer">
-                      <FaGithub className="mr-2 h-4 w-4" />
-                      View Repo
-                    </a>
-                  </Button>
-                )}
-              </CardFooter>
-            </Card>
-          </motion.div>
-        ))}
-      </motion.div>
-
-      {/* Media Modal */}
-      {selectedProject && selectedProject.mediaType && selectedProject.mediaType !== 'link' && (
+      {mediaProject?.mediaUrl && (mediaProject.mediaType === 'video' || mediaProject.mediaType === 'pdf') && (
         <MediaModal
-          isOpen={modalOpen}
-          onClose={() => {
-            setModalOpen(false);
-            setSelectedProject(null);
-          }}
-          mediaType={selectedProject.mediaType as 'video' | 'pdf'}
-          mediaUrl={selectedProject.mediaUrl!}
-          title={selectedProject.title}
+          isOpen
+          onClose={() => setMediaProject(null)}
+          mediaType={mediaProject.mediaType}
+          mediaUrl={mediaProject.mediaUrl}
+          title={mediaProject.title}
         />
       )}
-    </SectionWrapper>
+    </div>
   );
 }

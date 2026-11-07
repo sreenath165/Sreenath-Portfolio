@@ -11,7 +11,7 @@ const statusConfig = {
   online: {
     color: 'bg-green-500',
     pulseColor: 'bg-green-400',
-    message: "Hey there! I'm Sree AI 🤖 Ask me anything about Sai Sreenath!",
+    message: "Hi, I'm Sree AI, Sai Sreenath's portfolio assistant. Ask me about his projects, experience, skills, or which roles he fits.",
   },
   connecting: {
     color: 'bg-yellow-500',
@@ -27,35 +27,6 @@ const statusConfig = {
 
 const CHAT_ERROR_MESSAGE = "I'm sorry, I encountered an error. Please try again.";
 
-const thinkingMessage = "Hey! I'm Sree AI 🤖 Talk to me to know more about Sai!";
-
-function TypewriterText({ text }: { text: string }) {
-  const [displayText, setDisplayText] = useState('');
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    if (index < text.length) {
-      const timeout = setTimeout(() => {
-        setDisplayText(prev => prev + text[index]);
-        setIndex(prev => prev + 1);
-      }, 50);
-      return () => clearTimeout(timeout);
-    } else {
-      const resetTimeout = setTimeout(() => {
-        setDisplayText('');
-        setIndex(0);
-      }, 3000);
-      return () => clearTimeout(resetTimeout);
-    }
-  }, [index, text]);
-
-  return (
-    <span>
-      {displayText}
-      <span className="animate-pulse">|</span>
-    </span>
-  );
-}
 
 function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === 'user';
@@ -117,6 +88,16 @@ export function ChatbotButton() {
     const interval = setInterval(checkStatus, 60000); // Check every 60 seconds
 
     return () => clearInterval(interval);
+  }, []);
+
+  // Hide the teaser label while the footer is on screen so it never covers footer text.
+  const [footerVisible, setFooterVisible] = useState(false);
+  useEffect(() => {
+    const footer = document.getElementById('site-footer');
+    if (!footer || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(([entry]) => setFooterVisible(entry.isIntersecting));
+    observer.observe(footer);
+    return () => observer.disconnect();
   }, []);
 
   // Scroll to bottom when new messages arrive
@@ -220,16 +201,16 @@ export function ChatbotButton() {
   const config = statusConfig[status];
 
   return (
-    <div ref={containerRef} className="fixed bottom-24 right-6 z-50">
+    <div ref={containerRef} className="fixed bottom-20 right-4 z-50 sm:bottom-24 sm:right-6">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
-            className="absolute bottom-16 right-0 w-80 sm:w-96"
+            className="absolute bottom-16 right-0 w-[calc(100vw-3rem)] max-w-sm sm:w-96"
           >
-            <Card className="shadow-xl border-2 flex flex-col max-h-[70vh]">
+            <Card role="dialog" aria-label="Sree AI chat" className="shadow-xl flex flex-col max-h-[70vh]">
               {/* Header */}
               <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between border-b flex-shrink-0">
                 <div className="flex items-center gap-2">
@@ -246,18 +227,18 @@ export function ChatbotButton() {
                 </div>
                 <div className="flex items-center gap-1">
                   {messages.length > 0 && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={clearChat} title="Clear chat">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={clearChat} title="Clear chat" aria-label="Clear chat">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   )}
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setIsOpen(false); setShowBubble(true); }}>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { setIsOpen(false); setShowBubble(true); }} aria-label="Close chat">
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
 
               {/* Messages */}
-              <CardContent className="p-4 flex-1 overflow-y-auto min-h-[200px] max-h-[400px]">
+              <CardContent className="p-4 flex-1 overflow-y-auto min-h-[200px] max-h-[400px]" aria-live="polite">
                 {messages.length === 0 && !isStreaming ? (
                   <div className="bg-muted rounded-lg p-3 mb-3">
                     <p className="text-sm text-muted-foreground">
@@ -302,7 +283,8 @@ export function ChatbotButton() {
                       type="text"
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
-                      onKeyPress={handleKeyPress}
+                      onKeyDown={handleKeyPress}
+                      aria-label="Message Sree AI"
                       placeholder="Ask about Sai's projects, skills..."
                       className="flex-1 px-3 py-2 text-sm rounded-lg border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
                       disabled={isLoading}
@@ -311,6 +293,7 @@ export function ChatbotButton() {
                       size="icon"
                       onClick={handleSendMessage}
                       disabled={!inputValue.trim() || isLoading}
+                      aria-label="Send message"
                       className="flex-shrink-0"
                     >
                       {isLoading ? (
@@ -328,25 +311,19 @@ export function ChatbotButton() {
       </AnimatePresence>
 
       {/* Floating bubble and button */}
-      <div className="flex items-end gap-2">
+      <div className="flex items-center gap-2">
         <AnimatePresence>
-          {showBubble && !isOpen && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, x: 20 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              exit={{ opacity: 0, scale: 0.8, x: 20 }}
-              className="relative"
+          {showBubble && !isOpen && !footerVisible && (
+            <motion.button
+              type="button"
+              initial={{ opacity: 0, x: 8 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 8 }}
+              onClick={() => { setIsOpen(true); setShowBubble(false); }}
+              className="hidden rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-md hover:bg-accent sm:block"
             >
-              <div className="bg-card/75 backdrop-blur-sm border border-border/50 rounded-2xl rounded-br-sm px-4 py-3 shadow-lg max-w-[200px]">
-                <p className="text-xs font-medium text-foreground">
-                  <TypewriterText text={thinkingMessage} />
-                </p>
-              </div>
-              <div className="absolute -bottom-1 -right-1 flex gap-0.5">
-                <span className="w-2 h-2 bg-card/75 backdrop-blur-sm border border-border/50 rounded-full" />
-                <span className="w-1.5 h-1.5 bg-card/75 backdrop-blur-sm border border-border/50 rounded-full" />
-              </div>
-            </motion.div>
+              Ask my AI assistant
+            </motion.button>
           )}
         </AnimatePresence>
 
@@ -365,7 +342,9 @@ export function ChatbotButton() {
               }
             }}
             size="icon"
-            className="rounded-full h-14 w-14 shadow-lg relative"
+            aria-label={isOpen ? 'Close AI assistant' : 'Open AI assistant (Sree AI)'}
+            aria-expanded={isOpen}
+            className="rounded-full h-12 w-12 sm:h-14 sm:w-14 shadow-lg relative"
           >
             <MessageCircle className="h-6 w-6" />
             <span className={`absolute top-1 right-1 w-3 h-3 rounded-full ${config.color} border-2 border-background`} />
